@@ -30,7 +30,7 @@ class AbstractCode:
 			TYPE_ARRAY:
 				_cache.append_array(text)
 			_:
-				push_error("Invalid parameter for add(text) - %s" % str(text))
+				push_error("Invalid type for add: %s" % str(text))
 		
 		return self
 	
@@ -60,25 +60,19 @@ class Variable extends AbstractCode:
 		return "Variable"
 	
 	func add(text) -> AbstractCode:
-		if typeof(text) != TYPE_STRING:
-			push_error("Only Strings can be added to a %s - %s" % [_get_name(), str(text)])
-			return self
-		
-		_cache.append(text)
+		_cache.append(str(text))
 		
 		return self
+	
+	func output() -> String:
+		return "%s\n" % .output()
 
-class Function extends AbstractCode:
+class AbstractFunction extends AbstractCode:
 	var _function_def := ""
 	var _params := []
 	
-	func _init(text: String) -> void:
-		_function_def = "func %s%s:" % [text, "%s"]
-		# Always add a newline into the cache
-		newline()
-	
 	func _get_name() -> String:
-		return "Function"
+		return "AbstractFunction"
 	
 	func _construct_params() -> String:
 		var params := []
@@ -93,21 +87,35 @@ class Function extends AbstractCode:
 			params.pop_back()
 		
 		params.append(")")
-		return PoolStringArray(params).join("")
+		
+		return PoolStringArray(params).join("") if not params.empty() else ""
 	
-	func add_param(text: String) -> AbstractCode:
+	func add_param(text: String) -> AbstractFunction:
 		if _params.has(text):
-			push_error("Tried to add duplicate param")
+			push_error("Tried to add duplicate param %s" % text)
 		else:
 			_params.append(text)
+		
 		return self
 	
 	func output() -> String:
+		var params = _construct_params()
+		var the_rest = _build_string(_cache)
 		return "%s%s" % [_function_def % _construct_params(), _build_string(_cache)]
 
-class Runner extends AbstractCode:
+class Function extends AbstractFunction:
+	func _init(text: String) -> void:
+		_function_def = "func %s%s:" % [text, "%s"]
+		# Always add a newline into the cache
+		newline()
+	
+	func _get_name() -> String:
+		return "Function"
+
+class Runner extends AbstractFunction:
 	func _init() -> void:
-		_cache.append("func %s():" % RUN_FUNC)
+		_function_def = "func %s%s:" % [RUN_FUNC, "%s"]
+		# Always add a newline into the cache
 		newline()
 	
 	func _get_name() -> String:
@@ -117,13 +125,16 @@ const RUN_FUNC := "__runner__"
 
 var variables := []
 var functions := []
-var runner: Runner
+var runner := Runner.new()
 
 var gdscript: GDScript
 
 ###############################################################################
 # Builtin functions                                                           #
 ###############################################################################
+
+func _to_string() -> String:
+	return _build_source(variables, functions, runner)
 
 ###############################################################################
 # Connections                                                                 #
@@ -132,6 +143,19 @@ var gdscript: GDScript
 ###############################################################################
 # Private functions                                                           #
 ###############################################################################
+
+static func _build_source(v: Array, f: Array, r: Runner) -> String:
+	var source := ""
+	
+	for i in v:
+		source += i.output()
+	
+	for i in f:
+		source += i.output()
+	
+	source += r.output()
+	
+	return source
 
 static func _create_script(v: Array, f: Array, r: Runner) -> GDScript:
 	var s := GDScript.new()
@@ -168,18 +192,26 @@ func add_function(function_name: String) -> Function:
 	
 	return function
 
-func add() -> Runner:
-	runner = Runner.new()
+func add(text: String = "") -> Runner:
+	if not text.empty():
+		runner.add(text)
 	
 	return runner
 
 func add_raw(text: String) -> Runner:
-	runner = Runner.new()
-	
 	var split := text.split(";")
 	for i in split:
 		runner.add(i)
-		runner.newline()
+	
+	return runner
+
+func tab(amount: int = 1) -> Runner:
+	runner.tab(amount)
+	
+	return runner
+
+func newline() -> Runner:
+	runner.newline()
 	
 	return runner
 
@@ -188,12 +220,12 @@ func compile() -> int:
 	
 	return gdscript.reload()
 
-func execute():
-	return gdscript.new().call(RUN_FUNC)
+func execute(params: Array = []):
+	return gdscript.new().callv(RUN_FUNC, params)
 
 func clear() -> void:
 	gdscript = null
 	
 	variables.clear()
 	functions.clear()
-	runner = null
+	runner = Runner.new()
