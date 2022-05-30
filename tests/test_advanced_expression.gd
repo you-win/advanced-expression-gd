@@ -28,8 +28,8 @@ func after_all():
 
 var ae: AdvancedExpression
 
-func test_add_raw():
-	ae.add_raw("var i: int = 1;return i")
+func test_add_delimited():
+	ae.add_delimited("var i: int = 1;return i")
 	assert_ok(ae.compile())
 	assert_eq(ae.execute(), 1)
 	
@@ -40,13 +40,13 @@ func test_add_raw():
 	assert_eq(ae.runner._cache.size(), 1)
 	assert_null(ae.gdscript)
 	
-	ae.add_raw("var count: int = 0;for i in 5:;\tcount += 1;return count")
+	ae.add_delimited("var count: int = 0;for i in 5:;\tcount += 1;return count")
 	assert_ok(ae.compile())
 	assert_eq(ae.execute(), 5)
 	
 	ae.clear()
 	
-	ae.add_raw("""
+	ae.add_delimited("""
 		var count: int = 0
 		for i in 5:
 			count += 1
@@ -57,7 +57,7 @@ func test_add_raw():
 	
 	ae.clear()
 	
-	ae.add_raw("""
+	ae.add_delimited("""
 		var builder := PoolStringArray()
 		builder.append("hello")
 		builder.append(" ")
@@ -72,13 +72,13 @@ func test_add_raw():
 	
 	ae.clear()
 	
-	ae.add_raw("return null")
+	ae.add_delimited("return null")
 	assert_ok(ae.compile())
 	assert_null(ae.execute())
 	
 	ae.clear()
 	
-	ae.add_raw("pass")
+	ae.add_delimited("pass")
 	assert_ok(ae.compile())
 	assert_null(ae.execute())
 

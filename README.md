@@ -1,4 +1,8 @@
 # Advanced Expression GD
+
+[![Chat on Discord](https://img.shields.io/discord/853476898071117865?label=chat&logo=discord)](https://discord.gg/6mcdWWBkrr)
+[![package](https://img.shields.io/badge/package-1.0.0-blue)](https://www.npmjs.com/package/@sometimes_youwin/advanced-expression)
+
 Functions like Godot's built-in `Expression` class with the flexability of an actual script.
 
 See the `tests/` directory for more examples.
