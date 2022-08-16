@@ -1,4 +1,4 @@
-extends Reference
+extends RefCounted
 
 class AbstractCode:
 	var _cache := []
@@ -10,7 +10,7 @@ class AbstractCode:
 		return "AbstractCode"
 	
 	static func _build_string(list: Array) -> String:
-		return PoolStringArray(list).join("")
+		return "".join(list)
 	
 	func tab(times: int = 1) -> AbstractCode:
 		for i in times:
@@ -53,7 +53,7 @@ class AbstractCode:
 class Variable extends AbstractCode:
 	func _init(var_name: String, var_value: String = "") -> void:
 		_cache.append("var %s = " % var_name)
-		if not var_value.empty():
+		if not var_value.is_empty():
 			_cache.append(var_value)
 	
 	func _get_name() -> String:
@@ -65,7 +65,7 @@ class Variable extends AbstractCode:
 		return self
 	
 	func output() -> String:
-		return "%s\n" % .output()
+		return "%s\n" % super.output()
 
 class AbstractFunction extends AbstractCode:
 	var _function_def := ""
@@ -88,7 +88,7 @@ class AbstractFunction extends AbstractCode:
 		
 		params.append(")")
 		
-		return PoolStringArray(params).join("") if not params.empty() else ""
+		return "".join(params) if not params.is_empty() else ""
 	
 	func add_param(text: String) -> AbstractFunction:
 		if _params.has(text):
@@ -129,7 +129,7 @@ var functions := []
 var runner := Runner.new()
 
 var gdscript: GDScript
-var instance: Reference
+var instance: RefCounted
 
 ###############################################################################
 # Builtin functions                                                           #
@@ -169,7 +169,7 @@ static func _create_script(raw: Array, variables: Array, functions: Array, runne
 	
 	return s
 
-func _get_instance() -> Reference:
+func _get_instance() -> RefCounted:
 	if instance == null:
 		instance = gdscript.new()
 	return instance
@@ -218,8 +218,19 @@ func add_raw(text: String) -> void:
 ##
 ## @return: Runner - A builder object for the runner function
 func add(text: String = "") -> Runner:
-	if not text.empty():
+	if not text.is_empty():
 		runner.add(text)
+	
+	return runner
+
+## Adds a parameter to the runner function
+##
+## @param: text: String - The name of the parameter to be passed to the runner function
+##
+## @return: Runner - A builder object for the runner function
+func add_param(text: String) -> Runner:
+	if not text.is_empty():
+		runner.add_param(text)
 	
 	return runner
 
@@ -263,7 +274,7 @@ func newline() -> Runner:
 ##
 ## @return: int - The error code
 func compile(text: String = "") -> int:
-	if not text.empty():
+	if not text.is_empty():
 		runner.add(text)
 	gdscript = _create_script(raw, variables, functions, runner)
 	

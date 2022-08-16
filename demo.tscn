@@ -1,3 +1,6 @@
-[gd_scene format=2]
+[gd_scene load_steps=2 format=3 uid="uid://cg12joh4sytnm"]
+
+[ext_resource type="Script" path="res://demo.gd" id="1_ams7p"]
 
 [node name="Demo" type="CanvasLayer"]
+script = ExtResource("1_ams7p")
