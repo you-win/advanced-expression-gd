@@ -223,6 +223,17 @@ func add(text: String = "") -> Runner:
 	
 	return runner
 
+## Adds a parameter to the runner function
+##
+## @param: text: String - The name of the parameter to be passed to the runner function
+##
+## @return: Runner - A builder object for the runner function
+func add_param(text: String) -> Runner:
+	if not text.empty():
+		runner.add(text)
+
+	return runner
+
 ## Adds text to the body of the runner function. This text will be split by the specified
 ## delimiter and then added as separate lines
 ##
